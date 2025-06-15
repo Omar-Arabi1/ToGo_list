@@ -1,9 +1,11 @@
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
-	"encoding/json"
+	"strings"
+
 	"github.com/spf13/cobra"
 )
 
@@ -20,19 +22,39 @@ var addCmd = &cobra.Command{
 			fmt.Println("Please enter a task")
 			return 
 		}
+		
+		jsonToTasks, errReading := os.ReadFile("tasks.json")
 
+		if errReading != nil{
+			fmt.Println("encountered an error while reading the json file")
+			return 
+		}
+		
 		tasks := make(map[string]bool)
+
 		task := args[0]
+
+		if len(strings.TrimSpace(task)) == 0{
+			fmt.Println("Please enter a task")
+			return 
+		}
 
 		tasks[task] = false
 
-		tasksJson, err := json.MarshalIndent(tasks, "", "  ")	
+		errReading = json.Unmarshal(jsonToTasks, &tasks)
+		if errReading != nil{
+			fmt.Println("encountered an error while reading the json file")
+			return 
+		}
+
+		tasksToJson, err := json.MarshalIndent(tasks, "", "  ")	
+
 		if err != nil{
 			fmt.Println("encountered an error while making the json file")
 			return 
 		}
 
-		err = os.WriteFile("tasks.json", tasksJson, 0644)
+		err = os.WriteFile("tasks.json", tasksToJson, 0644)
 
 		if err != nil{
 			fmt.Println("encountered an error while writing the json file")
